@@ -25,10 +25,14 @@ impl Game {
     }
     
     pub fn do_collision(&mut self) {
+        for ball in &mut self.balls {
+            ball.do_collision_with_field(&self.field);
+        }
+
         let ball_clones: Vec<Ball> = self.balls.to_vec();
         for ball in &mut self.balls {
             for other in &ball_clones {
-                ball.do_collision(other, &self.field)
+                ball.do_collision_with_ball(other, &self.field)
             }
         }
     }
@@ -124,21 +128,31 @@ impl Ball {
     fn do_frame(&mut self, field: &Field) {
         self.velocity += vec3(0.0, -field.gravitational_acceleration(), 0.0);
         self.center_position += self.velocity;
-
-        if self.center_position.x < *field.x_min() || self.center_position.x > *field.x_max() {
-            self.velocity = vec3(-self.velocity.x * field.elasticity, self.velocity.y, self.velocity.z);
-        }
-
-        if self.center_position.z < *field.z_min() || self.center_position.z > *field.z_max() {
-            self.velocity = vec3(self.velocity.x, self.velocity.y, -self.velocity.z * field.elasticity);
-        }
-
-        if self.center_position.y < *field.y_min() {
-            self.velocity = vec3(self.velocity.x, -self.velocity.y * field.elasticity, self.velocity.z);
-        }
     }
     
-    fn do_collision(&mut self, other: &Self, field: &Field) {
+    fn do_collision_with_field(&mut self, field: &Field) {
+        if self.center_position.x < *field.x_min() + self.radius {
+            self.velocity = Self::collision(self.velocity, vec3(1.0, 0.0, 0.0), field.elasticity)
+        }
+
+        if self.center_position.x > *field.x_max() - self.radius {
+            self.velocity = Self::collision(self.velocity, vec3(-1.0, 0.0, 0.0), field.elasticity)
+        }
+
+        if self.center_position.z < *field.z_min() + self.radius {
+            self.velocity = Self::collision(self.velocity, vec3(0.0, 0.0, 1.0), field.elasticity)
+        }
+
+        if self.center_position.z > *field.z_max() - self.radius {
+            self.velocity = Self::collision(self.velocity, vec3(0.0, 0.0, -1.0), field.elasticity)
+        }
+
+        if self.center_position.y < *field.y_min() + self.radius {
+            self.velocity = Self::collision(self.velocity, vec3(0.0, 1.0, 0.0), field.elasticity)
+        }
+    }
+
+    fn do_collision_with_ball(&mut self, other: &Self, field: &Field) {
         if self.center_position == other.center_position {
             // TODO: change another method
             return;
@@ -172,7 +186,7 @@ impl Ball {
 
     fn to_gm(&self, context: &Context) -> Gm<Mesh, PhysicalMaterial> {
         let mut sphere = Gm::new(
-            Mesh::new(context, &CpuMesh::sphere(16)),
+            Mesh::new(context, &CpuMesh::sphere(8)),
             PhysicalMaterial::new_transparent(
                 context,
                 &CpuMaterial {

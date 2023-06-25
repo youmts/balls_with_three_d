@@ -104,7 +104,7 @@ pub fn main() {
             );
 
         count += 1;
-        if count % 100 == 0 {
+        if count % 10 == 0 {
             game.put_ball();
         }
 
