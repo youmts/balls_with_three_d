@@ -1,4 +1,5 @@
 use derive_getters::Getters;
+use rand::{rngs::ThreadRng, Rng};
 use three_d::*;
 
 #[derive(Getters, Default)]
@@ -6,9 +7,11 @@ pub struct Game {
     field: Field,
     balls: Vec<Ball>,
 }
+
 impl Game {
     pub fn put_ball(&mut self) {
         let ball = Ball {
+            center_position: vec3(self.field.rng.gen::<f32>() * 1.0 - 0.5 , 1.0, self.field.rng.gen::<f32>() * 1.0 - 0.5),
             ..Default::default()
         };
 
@@ -45,11 +48,12 @@ pub struct Field {
     y_min: f32,
     gravitational_acceleration: f32,
     elasticity: f32,
+    rng: ThreadRng,
 }
 
 impl Default for Field {
     fn default() -> Self {
-        Self { x_min: -1.0, x_max: 1.0, y_min: -1.0, z_min: -1.0, z_max: 1.0, gravitational_acceleration: 0.0001, elasticity: 0.8 }
+        Self { x_min: -1.0, x_max: 1.0, y_min: -1.0, z_min: -1.0, z_max: 1.0, gravitational_acceleration: 0.0001, elasticity: 0.8, rng: rand::thread_rng() }
     }
 }
 
