@@ -1,3 +1,6 @@
+mod game;
+
+use game::Game;
 use three_d::*;
 
 pub fn main() {
@@ -20,22 +23,8 @@ pub fn main() {
     );
     let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
 
-    let mut sphere = Gm::new(
-        Mesh::new(&context, &CpuMesh::sphere(16)),
-        PhysicalMaterial::new_transparent(
-            &context,
-            &CpuMaterial {
-                albedo: Color {
-                    r: 255,
-                    g: 255,
-                    b: 255,
-                    a: 200,
-                },
-                ..Default::default()
-            },
-        ),
-    );
-    sphere.set_transformation(Mat4::from_translation(vec3(0.0, 1.3, 0.0)) * Mat4::from_scale(0.2));
+    let mut game: Game = Default::default();
+    game.put_ball();
 
     // let mut cylinder = Gm::new(
     //     Mesh::new(&context, &CpuMesh::cylinder(16)),
@@ -99,20 +88,16 @@ pub fn main() {
     window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
         control.handle_events(&mut camera, &mut frame_input.events);
+        
+        game.do_frame();
+        let gms = game.to_gm(&context);
 
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(0.0, 0.0, 0.0, 1.0, 1.0))
             .render(
                 &camera,
-                sphere.into_iter(),
-                    // .into_iter()
-                    // .chain(&cylinder)
-                    // .chain(&cube)
-                    // .chain(&axes)
-                    // .chain(&bounding_box_sphere)
-                    // .chain(&bounding_box_cube)
-                    // .chain(&bounding_box_cylinder),
+                gms.into_iter(),
                 &[&light0, &light1],
             );
 

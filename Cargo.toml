@@ -1,9 +1,10 @@
 [package]
-name = "three-d-sandbox"
+name = "three_d_sandbox"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+derive-getters = "0.3.0"
 three-d = "0.15.0"
