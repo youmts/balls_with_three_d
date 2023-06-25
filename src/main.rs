@@ -85,11 +85,13 @@ pub fn main() {
     let light0 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, -0.5, -0.5));
     let light1 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, 0.5, 0.5));
 
+    let mut count = 0;
     window.render_loop(move |mut frame_input| {
         camera.set_viewport(frame_input.viewport);
         control.handle_events(&mut camera, &mut frame_input.events);
         
         game.do_frame();
+        game.do_collision();
         let gms = game.to_gm(&context);
 
         frame_input
@@ -100,6 +102,12 @@ pub fn main() {
                 gms.into_iter(),
                 &[&light0, &light1],
             );
+
+        count += 1;
+        if count % 100 == 0 {
+            game.put_ball();
+        }
+
 
         FrameOutput::default()
     });
