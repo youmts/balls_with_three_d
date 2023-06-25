@@ -34,7 +34,14 @@ impl Game {
     }
 
     pub fn to_gm(&self, context: &Context) -> Vec<Gm<Mesh, PhysicalMaterial>> {
-        self.balls.iter().map(|x| x.to_gm(context)).collect()
+        let mut fields = vec![self.field.to_gm(context)];
+        let mut balls = self.balls.iter().map(|x| x.to_gm(context)).collect();
+        
+        let mut return_vec = vec![];
+        return_vec.append(&mut fields);
+        return_vec.append(&mut balls);
+        
+        return_vec
     }
 }
 
@@ -46,6 +53,7 @@ pub struct Field {
     z_min: f32,
     z_max: f32,
     y_min: f32,
+    y_max: f32,
     gravitational_acceleration: f32,
     elasticity: f32,
     rng: ThreadRng,
@@ -53,7 +61,49 @@ pub struct Field {
 
 impl Default for Field {
     fn default() -> Self {
-        Self { x_min: -1.0, x_max: 1.0, y_min: -1.0, z_min: -1.0, z_max: 1.0, gravitational_acceleration: 0.0001, elasticity: 0.8, rng: rand::thread_rng() }
+        Self {
+            x_min: -1.0, x_max: 1.0,
+            y_min: -1.0, y_max: 1.0,
+            z_min: -1.0, z_max: 1.0,
+            gravitational_acceleration: 0.0001,
+            elasticity: 0.8,
+            rng: rand::thread_rng(),
+        }
+    }
+}
+
+impl Field {
+    fn to_gm(&self, context: &Context) -> Gm<Mesh, PhysicalMaterial> {
+        let mut cube = Gm::new(
+            Mesh::new(context, &CpuMesh::cube()),
+            PhysicalMaterial::new_transparent(
+                context,
+                &CpuMaterial {
+                    albedo: Color {
+                        r: 128,
+                        g: 128,
+                        b: 128,
+                        a: 128,
+                    },
+                    ..Default::default()
+                },
+            ),
+        );
+
+        // FIX: not mid pattern
+        let translation = Mat4::from_translation(
+            vec3(0.0, 0.0, 0.0)
+        );
+        let scale = Mat4::from_nonuniform_scale(
+            self.x_max - self.x_min,
+            self.y_max - self.y_min,
+            self.z_max - self.z_min,
+        );
+        let half = Mat4::from_scale(0.5);
+
+        cube.set_transformation(translation * half * scale);
+        
+        cube
     }
 }
 
